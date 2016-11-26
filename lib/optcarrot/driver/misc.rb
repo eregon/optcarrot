@@ -34,7 +34,7 @@ module Optcarrot
     end
     EMPTY_ARRAY = []
 
-    SIZE = 1
+    SIZE = 4
     def show_fps(colors, fps, palette)
       digits = fps > 100 ? 3 : 2
       w = (3 + digits) * 4
