@@ -5,10 +5,12 @@ module Optcarrot
   # Video output driver for SDL2
   class SDL2Video < Video
     def init
+      super
+
       SDL2.InitSubSystem(SDL2::INIT_VIDEO)
       @ticks_log = [0] * 11
       @buf = FFI::MemoryPointer.new(:uint32, WIDTH * HEIGHT)
-      @titles = (0..99).map {|n| "optcarrot (%d fps)" % n }
+      @titles = (0..500).map {|n| "optcarrot (%d fps)" % n }
 
       @window =
         SDL2.CreateWindow(
@@ -57,18 +59,8 @@ module Optcarrot
     end
 
     def tick(colors)
-      prev_ticks = @ticks_log[0]
-      wait = prev_ticks + 1000 - SDL2.GetTicks * NES::FPS
-      @ticks_log.rotate!(1)
-      if wait > 0
-        SDL2.Delay(wait / NES::FPS)
-        @ticks_log[0] = prev_ticks + 1000
-      else
-        @ticks_log[0] = SDL2.GetTicks * NES::FPS
-      end
-      elapsed = (@ticks_log[0] - @ticks_log[1]) / (@ticks_log.size - 1)
-      fps = (NES::FPS * 1000 + elapsed / 2) / elapsed
-      fps = 99 if fps > 99
+      fps = super(colors)
+      fps = 500 if fps > 500
 
       SDL2.SetWindowTitle(@window, @titles[fps])
 
