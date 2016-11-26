@@ -4,7 +4,7 @@ module Optcarrot
   # Video output driver using mplayer
   # Inspired from https://github.com/polmuz/pypy-image-demo/blob/master/io.py
   class MPlayerVideo < Video
-    MAX_FPS = NES::FPS
+    MAX_FPS = 200
 
     def init
       super
