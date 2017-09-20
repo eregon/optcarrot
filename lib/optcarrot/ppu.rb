@@ -936,319 +936,323 @@ module Optcarrot
       wait_frame
 
       while true
-        # pre-render scanline
+        main_loop_body
+      end
+    end
 
-        341.step(589, 8) do
-          # when 341, 349, ..., 589
-          if @hclk == 341
-            @sp_overflow = @sp_zero_hit = @vblanking = @vblank = false
-            @scanline = SCANLINE_HDUMMY
+    def main_loop_body
+      # pre-render scanline
+
+      341.step(589, 8) do
+        # when 341, 349, ..., 589
+        if @hclk == 341
+          @sp_overflow = @sp_zero_hit = @vblanking = @vblank = false
+          @scanline = SCANLINE_HDUMMY
+        end
+        open_name
+        wait_two_clocks
+
+        # when 343, 351, ..., 591
+        open_attr
+        wait_two_clocks
+
+        # when 345, 353, ..., 593
+        open_pattern(@bg_pattern_base)
+        wait_two_clocks
+
+        # when 347, 355, ..., 595
+        open_pattern(@io_addr | 8)
+        wait_two_clocks
+      end
+
+      597.step(653, 8) do
+        # when 597, 605, ..., 653
+        if @any_show
+          if @hclk == 645
+            @scroll_addr_0_4  = @scroll_latch & 0x001f
+            @scroll_addr_5_14 = @scroll_latch & 0x7fe0
+            @name_io_addr = (@scroll_addr_0_4 | @scroll_addr_5_14) & 0x0fff | 0x2000 # make cache consistent
           end
-          open_name
-          wait_two_clocks
+        end
+        open_name
+        wait_two_clocks
 
-          # when 343, 351, ..., 591
-          open_attr
-          wait_two_clocks
+        # when 599, 607, ..., 655
+        # Nestopia uses open_name here?
+        open_attr
+        wait_two_clocks
 
-          # when 345, 353, ..., 593
-          open_pattern(@bg_pattern_base)
-          wait_two_clocks
+        # when 601, 609, ..., 657
+        open_pattern(@pattern_end)
+        wait_two_clocks
 
-          # when 347, 355, ..., 595
-          open_pattern(@io_addr | 8)
+        # when 603, 611, ..., 659
+        open_pattern(@io_addr | 8)
+        if @hclk == 659
+          @hclk = 320
+          @vclk += HCLOCK_DUMMY
+          @hclk_target -= HCLOCK_DUMMY
+        else
           wait_two_clocks
         end
+        wait_zero_clocks
+      end
 
-        597.step(653, 8) do
-          # when 597, 605, ..., 653
+      while true
+        # visible scanline (not shown)
+
+        # when 320
+        load_extended_sprites
+        open_name
+        @sp_latch = @sp_ram[0] if @any_show
+        @sp_buffered = 0
+        @sp_zero_in_line = false
+        @sp_index = 0
+        @sp_phase = 0
+        wait_one_clock
+
+        # when 321
+        fetch_name
+        wait_one_clock
+
+        # when 322
+        open_attr
+        wait_one_clock
+
+        # when 323
+        fetch_attr
+        scroll_clock_x
+        wait_one_clock
+
+        # when 324
+        open_pattern(@io_pattern)
+        wait_one_clock
+
+        # when 325
+        fetch_bg_pattern_0
+        wait_one_clock
+
+        # when 326
+        open_pattern(@io_pattern | 8)
+        wait_one_clock
+
+        # when 327
+        fetch_bg_pattern_1
+        wait_one_clock
+
+        # when 328
+        preload_tiles
+        open_name
+        wait_one_clock
+
+        # when 329
+        fetch_name
+        wait_one_clock
+
+        # when 330
+        open_attr
+        wait_one_clock
+
+        # when 331
+        fetch_attr
+        scroll_clock_x
+        wait_one_clock
+
+        # when 332
+        open_pattern(@io_pattern)
+        wait_one_clock
+
+        # when 333
+        fetch_bg_pattern_0
+        wait_one_clock
+
+        # when 334
+        open_pattern(@io_pattern | 8)
+        wait_one_clock
+
+        # when 335
+        fetch_bg_pattern_1
+        wait_one_clock
+
+        # when 336
+        open_name
+        wait_one_clock
+
+        # when 337
+        if @any_show
+          update_enabled_flags_edge
+          @cpu.next_frame_clock = RP2C02_HVSYNC_1 if @scanline == SCANLINE_HDUMMY && @odd_frame
+        end
+        wait_one_clock
+
+        # when 338
+        open_name
+        @scanline += 1
+        if @scanline != SCANLINE_VBLANK
           if @any_show
-            if @hclk == 645
-              @scroll_addr_0_4  = @scroll_latch & 0x001f
-              @scroll_addr_5_14 = @scroll_latch & 0x7fe0
-              @name_io_addr = (@scroll_addr_0_4 | @scroll_addr_5_14) & 0x0fff | 0x2000 # make cache consistent
-            end
+            line = @scanline != 0 || !@odd_frame ? 341 : 340
+          else
+            update_enabled_flags_edge
+            line = 341
           end
-          open_name
-          wait_two_clocks
+          @hclk = 0
+          @vclk += line
+          @hclk_target = @hclk_target <= line ? 0 : @hclk_target - line
+        else
+          @hclk = HCLOCK_VBLANK_0
+          wait_zero_clocks
+          break
+        end
+        wait_zero_clocks
 
-          # when 599, 607, ..., 655
+        # visible scanline (shown)
+        0.step(248, 8) do
+          # when 0, 8, ..., 248
+          if @any_show
+            if @hclk == 64
+              @sp_addr = @regs_oam & 0xf8 # SP_OFFSET_TO_0_1
+              @sp_phase = nil
+              @sp_latch = 0xff
+            end
+            load_tiles
+            batch_render_eight_pixels
+            evaluate_sprites_even if @hclk >= 64
+            open_name
+          end
+          render_pixel
+          wait_one_clock
+
+          # when 1, 9, ..., 249
+          if @any_show
+            fetch_name
+            evaluate_sprites_odd if @hclk >= 64
+          end
+          render_pixel
+          wait_one_clock
+
+          # when 2, 10, ..., 250
+          if @any_show
+            evaluate_sprites_even if @hclk >= 64
+            open_attr
+          end
+          render_pixel
+          wait_one_clock
+
+          # when 3, 11, ..., 251
+          if @any_show
+            fetch_attr
+            evaluate_sprites_odd if @hclk >= 64
+            scroll_clock_y if @hclk == 251
+            scroll_clock_x
+          end
+          render_pixel
+          wait_one_clock
+
+          # when 4, 12, ..., 252
+          if @any_show
+            evaluate_sprites_even if @hclk >= 64
+            open_pattern(@io_pattern)
+          end
+          render_pixel
+          wait_one_clock
+
+          # when 5, 13, ..., 253
+          if @any_show
+            fetch_bg_pattern_0
+            evaluate_sprites_odd if @hclk >= 64
+          end
+          render_pixel
+          wait_one_clock
+
+          # when 6, 14, ..., 254
+          if @any_show
+            evaluate_sprites_even if @hclk >= 64
+            open_pattern(@io_pattern | 8)
+          end
+          render_pixel
+          wait_one_clock
+
+          # when 7, 15, ..., 255
+          if @any_show
+            fetch_bg_pattern_1
+            evaluate_sprites_odd if @hclk >= 64
+          end
+          render_pixel
+          # rubocop:disable Style/NestedModifier
+          update_enabled_flags if @hclk != 255 if @any_show
+          # rubocop:enable Style/NestedModifier
+          wait_one_clock
+        end
+
+        256.step(312, 8) do
+          if @hclk == 256
+            # when 256
+            open_name
+            @sp_latch = 0xff if @any_show
+            wait_one_clock
+
+            # when 257
+            scroll_reset_x
+            @sp_visible = false
+            @sp_active = false
+            wait_one_clock
+          else
+            # when 264, 272, ..., 312
+            open_name
+            wait_two_clocks
+          end
+
+          # when 258, 266, ..., 314
           # Nestopia uses open_name here?
           open_attr
           wait_two_clocks
 
-          # when 601, 609, ..., 657
-          open_pattern(@pattern_end)
-          wait_two_clocks
-
-          # when 603, 611, ..., 659
-          open_pattern(@io_addr | 8)
-          if @hclk == 659
-            @hclk = 320
-            @vclk += HCLOCK_DUMMY
-            @hclk_target -= HCLOCK_DUMMY
-          else
-            wait_two_clocks
-          end
-          wait_zero_clocks
-        end
-
-        while true
-          # visible scanline (not shown)
-
-          # when 320
-          load_extended_sprites
-          open_name
-          @sp_latch = @sp_ram[0] if @any_show
-          @sp_buffered = 0
-          @sp_zero_in_line = false
-          @sp_index = 0
-          @sp_phase = 0
-          wait_one_clock
-
-          # when 321
-          fetch_name
-          wait_one_clock
-
-          # when 322
-          open_attr
-          wait_one_clock
-
-          # when 323
-          fetch_attr
-          scroll_clock_x
-          wait_one_clock
-
-          # when 324
-          open_pattern(@io_pattern)
-          wait_one_clock
-
-          # when 325
-          fetch_bg_pattern_0
-          wait_one_clock
-
-          # when 326
-          open_pattern(@io_pattern | 8)
-          wait_one_clock
-
-          # when 327
-          fetch_bg_pattern_1
-          wait_one_clock
-
-          # when 328
-          preload_tiles
-          open_name
-          wait_one_clock
-
-          # when 329
-          fetch_name
-          wait_one_clock
-
-          # when 330
-          open_attr
-          wait_one_clock
-
-          # when 331
-          fetch_attr
-          scroll_clock_x
-          wait_one_clock
-
-          # when 332
-          open_pattern(@io_pattern)
-          wait_one_clock
-
-          # when 333
-          fetch_bg_pattern_0
-          wait_one_clock
-
-          # when 334
-          open_pattern(@io_pattern | 8)
-          wait_one_clock
-
-          # when 335
-          fetch_bg_pattern_1
-          wait_one_clock
-
-          # when 336
-          open_name
-          wait_one_clock
-
-          # when 337
+          # when 260, 268, ..., 316
           if @any_show
-            update_enabled_flags_edge
-            @cpu.next_frame_clock = RP2C02_HVSYNC_1 if @scanline == SCANLINE_HDUMMY && @odd_frame
+            buffer_idx = (@hclk - 260) / 2
+            open_pattern(buffer_idx >= @sp_buffered ? @pattern_end : open_sprite(buffer_idx))
+            # rubocop:disable Style/NestedModifier
+            @regs_oam = 0 if @scanline == 238 if @hclk == 316
+            # rubocop:enable Style/NestedModifier
           end
           wait_one_clock
 
-          # when 338
-          open_name
-          @scanline += 1
-          if @scanline != SCANLINE_VBLANK
-            if @any_show
-              line = @scanline != 0 || !@odd_frame ? 341 : 340
-            else
-              update_enabled_flags_edge
-              line = 341
-            end
-            @hclk = 0
-            @vclk += line
-            @hclk_target = @hclk_target <= line ? 0 : @hclk_target - line
-          else
-            @hclk = HCLOCK_VBLANK_0
-            wait_zero_clocks
-            break
+          # when 261, 269, ..., 317
+          if @any_show
+            @io_pattern = @chr_mem[@io_addr & 0x1fff] if (@hclk - 261) / 2 < @sp_buffered
           end
-          wait_zero_clocks
+          wait_one_clock
 
-          # visible scanline (shown)
-          0.step(248, 8) do
-            # when 0, 8, ..., 248
-            if @any_show
-              if @hclk == 64
-                @sp_addr = @regs_oam & 0xf8 # SP_OFFSET_TO_0_1
-                @sp_phase = nil
-                @sp_latch = 0xff
-              end
-              load_tiles
-              batch_render_eight_pixels
-              evaluate_sprites_even if @hclk >= 64
-              open_name
-            end
-            render_pixel
-            wait_one_clock
+          # when 262, 270, ..., 318
+          open_pattern(@io_addr | 8)
+          wait_one_clock
 
-            # when 1, 9, ..., 249
-            if @any_show
-              fetch_name
-              evaluate_sprites_odd if @hclk >= 64
+          # when 263, 271, ..., 319
+          if @any_show
+            buffer_idx = (@hclk - 263) / 2
+            if buffer_idx < @sp_buffered
+              pat0 = @io_pattern
+              pat1 = @chr_mem[@io_addr & 0x1fff]
+              load_sprite(pat0, pat1, buffer_idx) if pat0 != 0 || pat1 != 0
             end
-            render_pixel
-            wait_one_clock
-
-            # when 2, 10, ..., 250
-            if @any_show
-              evaluate_sprites_even if @hclk >= 64
-              open_attr
-            end
-            render_pixel
-            wait_one_clock
-
-            # when 3, 11, ..., 251
-            if @any_show
-              fetch_attr
-              evaluate_sprites_odd if @hclk >= 64
-              scroll_clock_y if @hclk == 251
-              scroll_clock_x
-            end
-            render_pixel
-            wait_one_clock
-
-            # when 4, 12, ..., 252
-            if @any_show
-              evaluate_sprites_even if @hclk >= 64
-              open_pattern(@io_pattern)
-            end
-            render_pixel
-            wait_one_clock
-
-            # when 5, 13, ..., 253
-            if @any_show
-              fetch_bg_pattern_0
-              evaluate_sprites_odd if @hclk >= 64
-            end
-            render_pixel
-            wait_one_clock
-
-            # when 6, 14, ..., 254
-            if @any_show
-              evaluate_sprites_even if @hclk >= 64
-              open_pattern(@io_pattern | 8)
-            end
-            render_pixel
-            wait_one_clock
-
-            # when 7, 15, ..., 255
-            if @any_show
-              fetch_bg_pattern_1
-              evaluate_sprites_odd if @hclk >= 64
-            end
-            render_pixel
-            # rubocop:disable Style/NestedModifier
-            update_enabled_flags if @hclk != 255 if @any_show
-            # rubocop:enable Style/NestedModifier
-            wait_one_clock
           end
-
-          256.step(312, 8) do
-            if @hclk == 256
-              # when 256
-              open_name
-              @sp_latch = 0xff if @any_show
-              wait_one_clock
-
-              # when 257
-              scroll_reset_x
-              @sp_visible = false
-              @sp_active = false
-              wait_one_clock
-            else
-              # when 264, 272, ..., 312
-              open_name
-              wait_two_clocks
-            end
-
-            # when 258, 266, ..., 314
-            # Nestopia uses open_name here?
-            open_attr
-            wait_two_clocks
-
-            # when 260, 268, ..., 316
-            if @any_show
-              buffer_idx = (@hclk - 260) / 2
-              open_pattern(buffer_idx >= @sp_buffered ? @pattern_end : open_sprite(buffer_idx))
-              # rubocop:disable Style/NestedModifier
-              @regs_oam = 0 if @scanline == 238 if @hclk == 316
-              # rubocop:enable Style/NestedModifier
-            end
-            wait_one_clock
-
-            # when 261, 269, ..., 317
-            if @any_show
-              @io_pattern = @chr_mem[@io_addr & 0x1fff] if (@hclk - 261) / 2 < @sp_buffered
-            end
-            wait_one_clock
-
-            # when 262, 270, ..., 318
-            open_pattern(@io_addr | 8)
-            wait_one_clock
-
-            # when 263, 271, ..., 319
-            if @any_show
-              buffer_idx = (@hclk - 263) / 2
-              if buffer_idx < @sp_buffered
-                pat0 = @io_pattern
-                pat1 = @chr_mem[@io_addr & 0x1fff]
-                load_sprite(pat0, pat1, buffer_idx) if pat0 != 0 || pat1 != 0
-              end
-            end
-            wait_one_clock
-          end
+          wait_one_clock
         end
-
-        # post-render scanline (vblank)
-
-        # when 681
-        vblank_0
-        wait_zero_clocks
-
-        # when 682
-        vblank_1
-        wait_zero_clocks
-
-        # when 684
-        vblank_2
-        wait_frame
       end
+
+      # post-render scanline (vblank)
+
+      # when 681
+      vblank_0
+      wait_zero_clocks
+
+      # when 682
+      vblank_1
+      wait_zero_clocks
+
+      # when 684
+      vblank_2
+      wait_frame
     end
     # rubocop:enable Metrics/MethodLength, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity, Metrics/AbcSize
 
