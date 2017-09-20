@@ -48,6 +48,50 @@ end
 $counter = 0
 at_exit { p [:counter, $counter] }
 
+def optimized_loop_body
+  # pre-render scanline
+  pre_render_scanline
+
+  while true
+    # visible scanline (not shown)
+    visible_scanline_not_shown
+
+    # increment scanline
+    # when 338
+    open_name
+    @scanline += 1
+    if @scanline != SCANLINE_VBLANK
+      if @any_show
+        line = @scanline != 0 || !@odd_frame ? 341 : 340
+      else
+        update_enabled_flags_edge
+        line = 341
+      end
+      @hclk = 0
+      @vclk += line
+      @hclk_target = @hclk_target <= line ? 0 : @hclk_target - line
+    else
+      @hclk = HCLOCK_VBLANK_0
+      break
+    end
+
+    # visible scanline (shown)
+    render_pixels
+    visible_scanline_cleanup
+  end
+
+  # post-render scanline (vblank)
+
+  # when 681
+  vblank_0
+
+  # when 682
+  vblank_1
+
+  # when 684
+  vblank_2
+end
+
 def pre_render_scanline
   @sp_overflow = @sp_zero_hit = @vblanking = @vblank = false
   @scanline = SCANLINE_HDUMMY
@@ -326,50 +370,6 @@ def visible_scanline_cleanup
     end
     @hclk += 1
   end
-end
-
-def optimized_loop_body
-  # pre-render scanline
-  pre_render_scanline
-
-  while true
-    # visible scanline (not shown)
-    visible_scanline_not_shown
-
-    # increment scanline
-    # when 338
-    open_name
-    @scanline += 1
-    if @scanline != SCANLINE_VBLANK
-      if @any_show
-        line = @scanline != 0 || !@odd_frame ? 341 : 340
-      else
-        update_enabled_flags_edge
-        line = 341
-      end
-      @hclk = 0
-      @vclk += line
-      @hclk_target = @hclk_target <= line ? 0 : @hclk_target - line
-    else
-      @hclk = HCLOCK_VBLANK_0
-      break
-    end
-
-    # visible scanline (shown)
-    render_pixels
-    visible_scanline_cleanup
-  end
-
-  # post-render scanline (vblank)
-
-  # when 681
-  vblank_0
-
-  # when 682
-  vblank_1
-
-  # when 684
-  vblank_2
 end
 
 end
