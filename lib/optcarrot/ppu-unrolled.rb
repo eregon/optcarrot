@@ -233,83 +233,116 @@ def visible_scanline_not_shown
 end
 
 def render_pixels
+  if @any_show
+    render_pixels_show
+  else
+    render_pixels_no_show
+  end
+end
+
+def render_pixels_show
   32.times do # 0.step(248, 8) do
     # when 0, 8, ..., 248
-    if @any_show
-      if @hclk == 64
-        @sp_addr = @regs_oam & 0xf8 # SP_OFFSET_TO_0_1
-        @sp_phase = nil
-        @sp_latch = 0xff
-      end
-      load_tiles
-      batch_render_eight_pixels
-      evaluate_sprites_even if @hclk >= 64
-      open_name
+    if @hclk == 64
+      @sp_addr = @regs_oam & 0xf8 # SP_OFFSET_TO_0_1
+      @sp_phase = nil
+      @sp_latch = 0xff
     end
+    load_tiles
+    batch_render_eight_pixels
+    evaluate_sprites_even if @hclk >= 64
+    open_name
+
     render_pixel
     @hclk += 1
 
     # when 1, 9, ..., 249
-    if @any_show
-      fetch_name
-      evaluate_sprites_odd if @hclk >= 64
-    end
+    fetch_name
+    evaluate_sprites_odd if @hclk >= 64
+
     render_pixel
     @hclk += 1
 
     # when 2, 10, ..., 250
-    if @any_show
-      evaluate_sprites_even if @hclk >= 64
-      open_attr
-    end
+    evaluate_sprites_even if @hclk >= 64
+    open_attr
+
     render_pixel
     @hclk += 1
 
     # when 3, 11, ..., 251
-    if @any_show
-      fetch_attr
-      evaluate_sprites_odd if @hclk >= 64
-      scroll_clock_y if @hclk == 251
-      scroll_clock_x
-    end
+    fetch_attr
+    evaluate_sprites_odd if @hclk >= 64
+    scroll_clock_y if @hclk == 251
+    scroll_clock_x
+
     render_pixel
     @hclk += 1
 
     # when 4, 12, ..., 252
-    if @any_show
-      evaluate_sprites_even if @hclk >= 64
-      open_pattern(@io_pattern)
-    end
+    evaluate_sprites_even if @hclk >= 64
+    open_pattern(@io_pattern)
+
     render_pixel
     @hclk += 1
 
     # when 5, 13, ..., 253
-    if @any_show
-      fetch_bg_pattern_0
-      evaluate_sprites_odd if @hclk >= 64
-    end
+    fetch_bg_pattern_0
+    evaluate_sprites_odd if @hclk >= 64
+
     render_pixel
     @hclk += 1
 
     # when 6, 14, ..., 254
-    if @any_show
-      evaluate_sprites_even if @hclk >= 64
-      open_pattern(@io_pattern | 8)
-    end
+    evaluate_sprites_even if @hclk >= 64
+    open_pattern(@io_pattern | 8)
+
     render_pixel
     @hclk += 1
 
     # when 7, 15, ..., 255
-    if @any_show
-      fetch_bg_pattern_1
-      evaluate_sprites_odd if @hclk >= 64
-    end
+    fetch_bg_pattern_1
+    evaluate_sprites_odd if @hclk >= 64
+
     render_pixel
 
-    if @any_show
-      update_enabled_flags if @hclk != 255
-    end
+    update_enabled_flags if @hclk != 255
+    @hclk += 1
+  end
+end
 
+def render_pixels_no_show
+  32.times do # 0.step(248, 8) do
+    # when 0, 8, ..., 248
+    render_pixel
+    @hclk += 1
+
+    # when 1, 9, ..., 249
+    render_pixel
+    @hclk += 1
+
+    # when 2, 10, ..., 250
+    render_pixel
+    @hclk += 1
+
+    # when 3, 11, ..., 251
+    render_pixel
+    @hclk += 1
+
+    # when 4, 12, ..., 252
+    render_pixel
+    @hclk += 1
+
+    # when 5, 13, ..., 253
+    render_pixel
+    @hclk += 1
+
+    # when 6, 14, ..., 254
+    render_pixel
+    @hclk += 1
+
+    # when 7, 15, ..., 255
+    render_pixel
     @hclk += 1
   end
 end
