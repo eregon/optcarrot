@@ -50,6 +50,7 @@ at_exit { p [:counter, $counter] }
 
 def optimized_loop_body
   # pre-render scanline
+  @scanline = SCANLINE_HDUMMY
   pre_render_scanline
 
   while true
@@ -94,7 +95,6 @@ end
 
 def pre_render_scanline
   @sp_overflow = @sp_zero_hit = @vblanking = @vblank = false
-  @scanline = SCANLINE_HDUMMY
 
   32.times do # 341.step(589, 8) do
     # when 341, 349, ..., 589
