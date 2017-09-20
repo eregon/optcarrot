@@ -77,7 +77,7 @@ def optimized_loop_body
     end
 
     # visible scanline (shown)
-    render_pixels
+    render_pixels # 91% of PPU time here
     visible_scanline_cleanup
   end
 
