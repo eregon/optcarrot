@@ -1447,3 +1447,5 @@ module Optcarrot
     end
   end
 end
+
+require_relative 'ppu-unrolled'
