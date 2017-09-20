@@ -98,6 +98,7 @@ def optimized_loop_body
     @hclk += 2
   end
 
+  raise unless @hclk == 661
   @hclk = 320
   @vclk += HCLOCK_DUMMY
   @hclk_target -= HCLOCK_DUMMY
@@ -288,6 +289,7 @@ def optimized_loop_body
       @hclk += 1
     end
 
+    raise unless @hclk == 256
     # when 256
     open_name
     @sp_latch = 0xff if @any_show
