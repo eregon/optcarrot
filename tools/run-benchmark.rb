@@ -4,6 +4,9 @@ require "csv"
 BENCHMARK_DIR = File.join(File.dirname(__dir__), "benchmark")
 Dir.mkdir(BENCHMARK_DIR) unless File.exist?(BENCHMARK_DIR)
 
+# The equivalent of 50s of game time, should be enough to warm up
+PEAK_FRAMES = "3000"
+
 # Dockerfile generator + helper methods
 class DockerImage
   IMAGES = []
@@ -87,6 +90,8 @@ class DockerImage
     options = []
     case mode
     when "default"
+    when "peak"
+      options << "-f" << PEAK_FRAMES
     when "opt-none"
       options << "--load-ppu=benchmark/ppu-core-opt-none.rb"
       options << "--load-cpu=benchmark/cpu-core-opt-none.rb"
@@ -261,15 +266,16 @@ class CLI
     @romfile = "examples/Lan_Master.nes"
 
     o = OptionParser.new
-    o.on("-m MODE", "mode (default/opt-none/opt-all/all/each)") {|v| @mode = v }
+    o.on("-m MODE", "mode (default/peak/opt-none/opt-all/all/each)") {|v| @mode = v }
     o.on("-c NUM", Integer, "iteration count") {|v| @count = v }
     o.on("-r FILE", String, "rom file") {|v| @romfile = v }
     o.separator("")
     o.separator("Examples:")
     latest = DockerImage::IMAGES.find {|n| n.tag != "trunk" }.tag
     o.separator("  ruby tools/run-benchmark.rb #{ latest } -m all       " \
-                "# run #{ latest } (default mode, opt-none mode, opt-all mode)")
+                "# run #{ latest } (default, peak, opt-none, opt-all modes)")
     o.separator("  ruby tools/run-benchmark.rb #{ latest }              # run #{ latest } (default mode)")
+    o.separator("  ruby tools/run-benchmark.rb #{ latest } -m peak      # run #{ latest } (peak mode, #{PEAK_FRAMES} frames)")
     o.separator("  ruby tools/run-benchmark.rb #{ latest } -m opt-none  # run #{ latest } (opt-none mode)")
     o.separator("  ruby tools/run-benchmark.rb #{ latest } -m opt-all   # run #{ latest } (opt-all mode)")
     o.separator("  ruby tools/run-benchmark.rb all -m all          # run all (default mode)")
@@ -363,7 +369,7 @@ class CLI
         opt_cpu.clear if opt_cpu == ["none"]
       end
     else
-      %w(default opt-none opt-all).each do |mode|
+      %w(default peak opt-none opt-all).each do |mode|
         next unless @mode == mode || @mode == "all"
         yield mode
       end
