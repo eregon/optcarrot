@@ -24,6 +24,9 @@ module Optcarrot
       end
 
       @key_mapping = DEFAULT_KEY_MAPPING
+
+      @ticks = { start: 0, select: 0, a: 0, b: 0, right: 0, left: 0, down: 0, up: 0,
+                 screen_x1: 0, screen_x2: 0, screen_x3: 0, screen_full: 0 }
     end
 
     def dispose
@@ -83,14 +86,19 @@ module Optcarrot
       end
     end
 
-    def tick(_frame, pads)
+    def tick(frame, pads)
       while SDL2.PollEvent(@event) != 0
         case @event.read_int
 
         when 0x300, 0x301 # SDL_KEYDOWN, SDL_KEYUP
           next if @event.get_uint8(@keyboard_repeat_offset) != 0
           key = @key_mapping[@event.get_int(@keyboard_sym_offset)]
-          event(pads, @event.read_int == 0x300 ? :keydown : :keyup, *key) if key
+          dir = @event.read_int == 0x300 ? :keydown : :keyup
+
+          if key and dir == :keydown
+            event(pads, dir, *key) if key
+            @ticks[key[0]] = frame
+          end
 
         when 0x600 # SDL_JOYAXISMOTION
           which = @event.get_uint32(@joy_which_offset)
@@ -120,6 +128,10 @@ module Optcarrot
         when 0x100 # SDL_QUIT
           exit
         end
+      end
+
+      @ticks.each do |code, prev_frame|
+        event(pads, :keyup, code, 0) if prev_frame + 5 == frame
       end
     end
   end
