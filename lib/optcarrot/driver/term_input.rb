@@ -50,7 +50,7 @@ module Optcarrot
       end
 
       @ticks.each do |code, prev_frame|
-        event(pads, :keyup, code, 0) if prev_frame + 5 < frame
+        event(pads, :keyup, code, 0) if prev_frame + 5 == frame
       end
     end
   end
