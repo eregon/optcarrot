@@ -8,7 +8,8 @@ module Optcarrot
       $stdin.raw!
       $stdin.getc if $stdin.ready?
       @escape = false
-      @ticks = { start: 0, select: 0, a: 0, b: 0, right: 0, left: 0, down: 0, up: 0 }
+      @ticks = { start: 0, select: 0, a: 0, b: 0, right: 0, left: 0, down: 0, up: 0,
+                 screen_x1: 0, screen_x2: 0, screen_x3: 0, screen_full: 0 }
     end
 
     def dispose
@@ -40,6 +41,10 @@ module Optcarrot
           when 0x0d       then keydown(pads, :select, frame)
           when 0x20       then keydown(pads, :start, frame)
           when 0x51, 0x71 then exit
+          when 0x31 then keydown(pads, :screen_x1, frame) # `1'
+          when 0x32 then keydown(pads, :screen_x2, frame) # `2'
+          when 0x33 then keydown(pads, :screen_x3, frame) # `3'
+          when 0x66 then keydown(pads, :screen_full, frame) # `f'
           end
         end
       end
