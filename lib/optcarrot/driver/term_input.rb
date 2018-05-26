@@ -37,7 +37,7 @@ module Optcarrot
           case ch
           when 0x1b then @escape = true
           when 0x58, 0x78 then keydown(pads, :a, frame)
-          when 0x5a, 0x7a then keydown(pads, :b, frame)
+          when 0x5a, 0x73 then keydown(pads, :b, frame)
           when 0x0d       then keydown(pads, :select, frame)
           when 0x20       then keydown(pads, :start, frame)
           when 0x51, 0x71 then exit

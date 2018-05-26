@@ -40,8 +40,8 @@ module Optcarrot
     DEFAULT_KEY_MAPPING = {
       0x20        => [:start, 0],   # space
       0x0d        => [:select, 0],  # return
-      0x7a        => [:a, 0],       # `Z'
-      0x78        => [:b, 0],       # `X'
+      'x'.ord     => [:a, 0],       # `Z'
+      's'.ord     => [:b, 0],       # `X'
       0x4000_004f => [:right, 0],
       0x4000_0050 => [:left, 0],
       0x4000_0051 => [:down, 0],
