@@ -10,7 +10,7 @@ module Optcarrot
       SDL2.InitSubSystem(SDL2::INIT_VIDEO)
       @ticks_log = [0] * 11
       @buf = FFI::MemoryPointer.new(:uint32, WIDTH * HEIGHT)
-      @titles = (0..500).map {|n| "optcarrot (%d fps)" % n }
+      @titles = (0..500).map {|n| "optcarrot on #{RUBY_ENGINE} (%d fps)" % n }
 
       @window =
         SDL2.CreateWindow(
