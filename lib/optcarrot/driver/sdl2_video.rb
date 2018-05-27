@@ -37,6 +37,8 @@ module Optcarrot
       @palette = @palette_rgb.map do |r, g, b|
         0xff000000 | (r << 16) | (g << 8) | b
       end
+
+      change_window_size(3) if ENV["RECORD"]
     end
 
     def change_window_size(scale)
