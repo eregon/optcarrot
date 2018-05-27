@@ -14,6 +14,7 @@ module Optcarrot
 
     def dispose
       $stdin.cooked!
+      super()
     end
 
     def keydown(pads, code, frame)
@@ -52,6 +53,8 @@ module Optcarrot
       @ticks.each do |code, prev_frame|
         event(pads, :keyup, code, 0) if prev_frame + 5 == frame
       end
+
+      super(frame, pads)
     end
   end
 end

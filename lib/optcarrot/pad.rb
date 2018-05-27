@@ -8,6 +8,8 @@ module Optcarrot
     ###########################################################################
     # initialization
 
+    attr_reader :pads
+
     def initialize(conf, cpu, apu)
       @conf = conf
       @cpu = cpu
