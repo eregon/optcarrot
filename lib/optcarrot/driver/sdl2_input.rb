@@ -35,6 +35,7 @@ module Optcarrot
       end
       @joysticks.clear
       SDL2.QuitSubSystem(SDL2::INIT_JOYSTICK)
+      super()
     end
 
     DEFAULT_KEY_MAPPING = {
@@ -133,6 +134,8 @@ module Optcarrot
       @ticks.each do |code, prev_frame|
         event(pads, :keyup, code, 0) if prev_frame + 5 == frame
       end
+
+      super(frame, pads)
     end
   end
 end

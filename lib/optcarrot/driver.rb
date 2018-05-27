@@ -124,19 +124,32 @@ module Optcarrot
 
   # A base class of input driver
   class Input
+    RECORD = ENV["RECORD"]
+
     def initialize(conf, video)
       @conf = conf
       @video = video
       init
+      if RECORD
+        @log = {}
+        puts "Recording input in #{RECORD}"
+      end
     end
 
     def init
     end
 
     def dispose
+      if RECORD
+        File.binwrite(RECORD, Marshal.dump(@log))
+      end
     end
 
-    def tick(_frame, _pads)
+    def tick(frame, pads)
+      if RECORD
+        value = pads.pads[0].buttons
+        @log[frame] = value if value != 0
+      end
     end
 
     def event(pads, type, code, player)
