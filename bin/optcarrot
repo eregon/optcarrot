@@ -1,5 +1,9 @@
 #!/usr/bin/env ruby
 
+unless defined?(Process::CLOCK_MONOTONIC)
+  require_relative '../tools/shim'
+end
+
 # I'm too lazy to type `-Ilib` every time...
 require_relative "../lib/optcarrot"
 
