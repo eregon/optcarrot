@@ -45,6 +45,10 @@ module Optcarrot
           when 0x31 then keydown(pads, :screen_x1, frame) # `1'
           when 0x32 then keydown(pads, :screen_x2, frame) # `2'
           when 0x33 then keydown(pads, :screen_x3, frame) # `3'
+          when 0x34 then keydown(pads, :screen_x4, frame) # `4'
+          when 0x35 then keydown(pads, :screen_x5, frame) # `5'
+          when 0x36 then keydown(pads, :screen_x6, frame) # `6'
+          when 0x37 then keydown(pads, :screen_x7, frame) # `7'
           when 0x66 then keydown(pads, :screen_full, frame) # `f'
           end
         end

@@ -60,6 +60,10 @@ module Optcarrot
       0x31 => [:screen_x1, nil],   # `1'
       0x32 => [:screen_x2, nil],   # `2'
       0x33 => [:screen_x3, nil],   # `3'
+      0x34 => [:screen_x4, nil],   # `4'
+      0x35 => [:screen_x5, nil],   # `5'
+      0x36 => [:screen_x6, nil],   # `6'
+      0x37 => [:screen_x7, nil],   # `7'
       0x66 => [:screen_full, nil], # `f'
       0x71 => [:quit, nil],        # `q'
     }
