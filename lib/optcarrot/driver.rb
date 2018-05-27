@@ -168,6 +168,10 @@ module Optcarrot
         when :screen_x1   then @video.change_window_size(1)
         when :screen_x2   then @video.change_window_size(2)
         when :screen_x3   then @video.change_window_size(3)
+        when :screen_x4   then @video.change_window_size(4)
+        when :screen_x5   then @video.change_window_size(5)
+        when :screen_x6   then @video.change_window_size(6)
+        when :screen_x7   then @video.change_window_size(7)
         when :screen_full then @video.change_window_size(nil)
         when :quit        then exit
         end
