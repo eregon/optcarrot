@@ -23,7 +23,13 @@ fps_history = ARGV.grep(/fps-history/).first
       df_ = df_.unstack("mode")
       df_ = df_.reindex(index: idx.get_level_values("name").unique)
       df_ = df_.reindex(columns: idx.get_level_values("mode").unique)
-      df_ = df_["default"].fillna(df_["opt-none"]).to_frame if oneshot && summary
+      if oneshot && summary
+        if PyCall::List.new(df_.columns).include? 'opt-none'
+          df_ = df_["default"].fillna(df_["opt-none"]).to_frame
+        else
+          df_ = df_["default"].to_frame
+        end
+      end
       df_
     end
     ax = mean.plot(
