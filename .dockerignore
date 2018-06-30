@@ -4,6 +4,7 @@ coverage/
 doc/
 pkg/
 vendor/
+venv/
 optcarrot-*.gem
 
 .git
