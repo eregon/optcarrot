@@ -66,13 +66,26 @@ end
 if fps_history
   fps_df = pd.read_csv(fps_history, index_col: "frame")
   selected = PyCall::List.new(fps_df.columns)
+
+  # Restore the time to 1st frame as first FPS data from elapsed-time.csv
+  elapsed_time = fps_history[/^(.+)-fps-history/, 1] + "-elapsed-time.csv"
+  elapsed = pd.read_csv(elapsed_time, index_col: "name")["run 1"]
+  selected.each do |impl|
+    total = elapsed[impl]
+    measured = (1.0/fps_df[impl][1..-1]).sum
+    time_to_1st_frame = total - measured
+    fps_df[impl][1] = 1.0/time_to_1st_frame
+    # fps_df[impl][1] = 1.0
+  end
+
   # selected = PyCall::List.new(["ruby25", "ruby20", "truffleruby", "jruby9koracle", "topaz"])
   fps_df = fps_df[selected]
-  [fps_df[1..180], fps_df].each do |df_|
-    ax = df_.plot(title: "fps history (up to #{ PyCall.len(df_) } frames)", figsize: [8, 6])
+  [fps_df[0..179], fps_df].each do |df_|
+    ax = df_.plot(title: "fps history (up to #{ PyCall.len(df_) } frames)", figsize: [24, 18])
     ax.set_xlabel("frames")
     ax.set_ylabel("frames per second")
     file = "doc/fps-history-#{ PyCall.len(df_) }.png"
+    plt.ylim(ymin: 0)
     plt.savefig(file, dpi: 80, bbox_inches: "tight")
     plt.close
     puts file
