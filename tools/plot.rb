@@ -90,4 +90,18 @@ if fps_history
     plt.close
     puts file
   end
+
+  selected.each do |impl|
+    fps_df["#{impl}_time"] = (1.0/fps_df[impl]).cumsum()
+  end
+
+  ax = fps_df.plot(x: "#{selected[0]}_time", y: selected[0], title: "warmup", figsize: [24, 12])
+  selected[1..-1].each { |impl| fps_df.plot(ax: ax, x: "#{impl}_time", y: impl) }
+  ax.set_xlabel("seconds")
+  ax.set_ylabel("frames per second")
+  file = "warmup.png"
+  plt.ylim(ymin: 0)
+  plt.savefig(file, dpi: 80, bbox_inches: "tight")
+  plt.close
+  puts file
 end
