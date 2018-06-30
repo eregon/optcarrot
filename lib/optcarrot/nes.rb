@@ -62,6 +62,7 @@ module Optcarrot
           puts "frame,fps-history"
           @fps_history.each_with_index {|fps, frame| puts "#{ frame },#{ fps }" }
         end
+        puts RUBY_DESCRIPTION if @conf.print_fps
         puts "fps: #{ @fps }" if @conf.print_fps
       end
       puts "checksum: #{ @ppu.output_pixels.pack("C*").sum }" if @conf.print_video_checksum && @video.class == Video
