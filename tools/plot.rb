@@ -6,8 +6,13 @@ pyimport "numpy", as: "np"
 pyimport "pandas", as: "pd"
 pyimport "matplotlib.pyplot", as: "plt"
 
+oneshot_file = ARGV.grep(/oneshot/).first
+elapsed_time = ARGV.grep(/elapsed-time/).first
+fps_history = ARGV.grep(/fps-history/).first
+
 [true, false].each do |oneshot|
-  df = pd.read_csv(oneshot ? ARGV[0] : ARGV[1], index_col: ["mode", "name"])
+  next unless file = oneshot ? oneshot_file : elapsed_time
+  df = pd.read_csv(file, index_col: ["mode", "name"])
   df = df[df.index.get_level_values(1) != "jruby9k"]
   df = df[df.index.get_level_values(1) != "jruby17"]
   df = df.filter(regex: "run \\d+").stack().to_frame("fps")
@@ -52,12 +57,18 @@ pyimport "matplotlib.pyplot", as: "plt"
   end
 end
 
-fps_df = pd.read_csv(ARGV[2], index_col: "frame")
-fps_df = fps_df[PyCall::List.new(["ruby25", "ruby20", "truffleruby", "jruby9koracle", "topaz"])]
-[fps_df[1..180], fps_df].each do |df_|
-  ax = df_.plot(title: "fps history (up to #{ PyCall.len(df_) } frames)", figsize: [8, 6])
-  ax.set_xlabel("frames")
-  ax.set_ylabel("frames per second")
-  plt.savefig("doc/fps-history-#{ PyCall.len(df_) }.png", dpi: 80, bbox_inches: "tight")
-  plt.close
+if fps_history
+  fps_df = pd.read_csv(fps_history, index_col: "frame")
+  selected = PyCall::List.new(fps_df.columns)
+  # selected = PyCall::List.new(["ruby25", "ruby20", "truffleruby", "jruby9koracle", "topaz"])
+  fps_df = fps_df[selected]
+  [fps_df[1..180], fps_df].each do |df_|
+    ax = df_.plot(title: "fps history (up to #{ PyCall.len(df_) } frames)", figsize: [8, 6])
+    ax.set_xlabel("frames")
+    ax.set_ylabel("frames per second")
+    file = "doc/fps-history-#{ PyCall.len(df_) }.png"
+    plt.savefig(file, dpi: 80, bbox_inches: "tight")
+    plt.close
+    puts file
+  end
 end
