@@ -221,14 +221,23 @@ class Ruby187 < DockerImage
   SLOW = true
 end
 
-class TruffleRuby < DockerImage
+module TruffleRubyCommon
   URL = "https://github.com/oracle/graal/releases/download/vm-1.0.0-rc2/graalvm-ce-1.0.0-rc2-linux-amd64.tar.gz"
   FROM = "buildpack-deps:xenial"
   RUN = [
     "cd graalvm-* && bin/gu install org.graalvm.ruby",
   ]
-  RUBY = "graalvm-*/bin/ruby"
   SUPPORTED_MODE = %w(default)
+end
+
+class TruffleRubyNative < DockerImage
+  include TruffleRubyCommon
+  RUBY = "graalvm-*/bin/ruby --native"
+end
+
+class TruffleRubyJVM < DockerImage
+  include TruffleRubyCommon
+  RUBY = "graalvm-*/bin/ruby --jvm"
 end
 
 class JRuby9k < DockerImage
