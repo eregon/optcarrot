@@ -176,6 +176,15 @@ class Trunk < DockerImage
   RUBY = "ruby/ruby -Iruby"
 end
 
+class Ruby26MJIT < DockerImage
+  FROM = "ruby:2.6.0-preview2"
+  RUBY = "ruby --jit"
+end
+
+class Ruby26 < DockerImage
+  FROM = "ruby:2.6.0-preview2"
+end
+
 class Ruby25 < DockerImage
   FROM = "ruby:2.5"
 end
