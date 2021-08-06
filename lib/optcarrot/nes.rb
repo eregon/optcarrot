@@ -36,6 +36,10 @@ module Optcarrot
       @pads.reset
       @cpu.boot
       @rom.load_battery
+
+      @image_nb = 0
+      @images = Hash.new { |h,k| h[k] = @image_nb += 1 }
+      @frame_images = []
     end
 
     def step
@@ -53,6 +57,10 @@ module Optcarrot
 
       @frame += 1
       @conf.info("frame #{ @frame }") if @conf.loglevel >= 2
+
+      frame_image = @images[@ppu.output_pixels.dup.freeze]
+      puts "frame #{@frame}: #{frame_image}" # " #{@ppu.output_pixels.pack("C*").hash}"
+      @frame_images << frame_image
     end
 
     def dispose
@@ -74,6 +82,8 @@ module Optcarrot
       @audio.dispose
       @input.dispose
       @rom.save_battery
+
+      p @frame_images.chunk_while { |b,a| b == a }.map { |cons| [cons.size, cons[0]] }
     end
 
     def run
