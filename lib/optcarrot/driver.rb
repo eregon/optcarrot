@@ -75,6 +75,7 @@ module Optcarrot
 
     def init
       @last = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      puts RUBY_DESCRIPTION
     end
 
     def dispose
