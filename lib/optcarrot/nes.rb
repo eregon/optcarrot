@@ -68,7 +68,7 @@ module Optcarrot
         if @conf.print_p95fps
           puts "p95 fps: #{ @fps_history.sort[(@fps_history.length * 0.05).floor] }"
         end
-        puts RUBY_DESCRIPTION if @conf.print_fps
+        puts RUBY_DESCRIPTION
         puts "fps: #{ @fps }" if @conf.print_fps
         puts "max fps: #{@max_fps}"
       end
