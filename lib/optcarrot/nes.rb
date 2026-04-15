@@ -19,6 +19,8 @@ module Optcarrot
 
       @frame = 0
       @frame_target = @conf.frames == 0 ? nil : @conf.frames
+      @fps = 0.0
+      @max_fps = 0.0
       @fps_history = [] if save_fps_history?
     end
 
@@ -48,6 +50,7 @@ module Optcarrot
 
       @input.tick(@frame, @pads)
       @fps = @video.tick(@ppu.output_pixels, @frame)
+      @max_fps = @fps if @fps > @max_fps
       @fps_history << @fps if save_fps_history?
       @audio.tick(@apu.output)
 
@@ -67,6 +70,7 @@ module Optcarrot
         end
         puts RUBY_DESCRIPTION if @conf.print_fps
         puts "fps: #{ @fps }" if @conf.print_fps
+        puts "max fps: #{@max_fps}"
       end
       if @conf.print_video_checksum && @video.instance_of?(Video)
         puts "checksum: #{ @ppu.output_pixels.pack("C*").sum }"
