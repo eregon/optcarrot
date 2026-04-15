@@ -47,7 +47,7 @@ module Optcarrot
       @rom.vsync
 
       @input.tick(@frame, @pads)
-      @fps = @video.tick(@ppu.output_pixels)
+      @fps = @video.tick(@ppu.output_pixels, @frame)
       @fps_history << @fps if save_fps_history?
       @audio.tick(@apu.output)
 

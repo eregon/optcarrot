@@ -60,7 +60,7 @@ module Optcarrot
       SDL2.QuitSubSystem(SDL2::INIT_VIDEO)
     end
 
-    def tick(colors)
+    def tick(colors, frame_number)
       fps = super(colors)
       fps = 999 if fps > 999
 
@@ -74,7 +74,11 @@ module Optcarrot
       SDL2.UpdateTexture(@texture, nil, @buf, WIDTH * 4)
       SDL2.RenderClear(@renderer)
       SDL2.RenderCopy(@renderer, @texture, nil, nil)
-      SDL2.RenderPresent(@renderer)
+
+      render_every_nth_frame = 1 + (fps.to_i / 60)
+      if frame_number % render_every_nth_frame == 0
+        SDL2.RenderPresent(@renderer)
+      end
 
       fps
     end
