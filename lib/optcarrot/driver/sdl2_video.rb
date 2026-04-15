@@ -10,7 +10,7 @@ module Optcarrot
       SDL2.InitSubSystem(SDL2::INIT_VIDEO)
       @ticks_log = [0] * 11
       @buf = FFI::MemoryPointer.new(:uint32, WIDTH * HEIGHT)
-      @titles = (0..500).map {|n| "optcarrot on #{RUBY_ENGINE} (%d fps)" % n }
+      @titles = (0..999).map {|n| "optcarrot on #{RUBY_ENGINE} (%d fps)" % n }
 
       @window =
         SDL2.CreateWindow(
@@ -62,7 +62,7 @@ module Optcarrot
 
     def tick(colors)
       fps = super(colors)
-      fps = 500 if fps > 500
+      fps = 999 if fps > 999
 
       SDL2.SetWindowTitle(@window, @titles[fps])
 
