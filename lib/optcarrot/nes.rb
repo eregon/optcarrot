@@ -66,7 +66,7 @@ module Optcarrot
           puts "p95 fps: #{ @fps_history.sort[(@fps_history.length * 0.05).floor] }"
         end
         puts RUBY_DESCRIPTION
-        puts "fps: #{ @fps }" if @conf.print_fps
+        puts "max fps of last 50 frames: %.2f" % @fps
       end
       if @conf.print_video_checksum && @video.instance_of?(Video)
         puts "checksum: #{ @ppu.output_pixels.pack("C*").sum }"
