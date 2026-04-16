@@ -74,16 +74,21 @@ module Optcarrot
     attr_reader :palette
 
     def init
-      @times = []
+      @last = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      @last_n_fps = []
     end
 
     def dispose
     end
 
     def tick(_output)
-      @times << Process.clock_gettime(Process::CLOCK_MONOTONIC)
-      @times.shift if @times.size > 10
-      @times.size < 2 ? 0 : ((@times.last - @times.first) / (@times.size - 1)) ** -1
+      now = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      fps = 1.0 / (now - @last)
+      @last = now
+
+      @last_n_fps << fps
+      @last_n_fps.shift if @last_n_fps.size > 50
+      @last_n_fps.max
     end
 
     def change_window_size(_scale)
