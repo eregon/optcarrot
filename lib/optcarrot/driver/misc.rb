@@ -60,6 +60,7 @@ module Optcarrot
       # decide fps color
       color =
         case
+        when fps >= 500 then palette[0x13] # purple
         when fps >= 100 then palette[0x19] # green
         when fps >= 60 then palette[0x11] # blue
         when fps >= 55 then palette[0x28] # yellow
