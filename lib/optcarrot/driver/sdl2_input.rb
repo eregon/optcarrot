@@ -1,4 +1,5 @@
 require_relative "sdl2"
+require_relative "log_input"
 
 module Optcarrot
   # Input driver for SDL2
@@ -27,6 +28,11 @@ module Optcarrot
 
       @ticks = { start: 0, select: 0, a: 0, b: 0, right: 0, left: 0, down: 0, up: 0,
                  screen_x1: 0, screen_x2: 0, screen_x3: 0, screen_full: 0 }
+
+      if @conf.key_log
+        @replay = LogInput.new(@conf, @video)
+        @replay.init
+      end
     end
 
     def dispose
@@ -92,6 +98,8 @@ module Optcarrot
     end
 
     def tick(frame, pads)
+      @replay&.tick(frame, pads)
+
       while SDL2.PollEvent(@event) != 0
         case @event.read_int
 
